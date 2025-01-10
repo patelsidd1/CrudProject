@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Operations</title>
+    <style>
+        body {
+            background-image: url('https://images.pexels.com/photos/326055/pexels-photo-326055.jpeg');
+            background-size: cover; 
+            background-repeat: no-repeat; 
+            background-position: center; 
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            width: 400px;
+        }
+
+        .form-container h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .button-group button {
+            padding: 10px;
+            margin: 5px 0;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button-group button:hover {
+            background: #0056b3;
+        }
+
+        .dynamic-form {
+            display: none;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+
+        .dynamic-form label {
+            margin: 10px 0 5px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .dynamic-form input {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .dynamic-form button {
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .dynamic-form button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>CRUD Operations</h1>
+        <div class="button-group">
+            <button onclick="showForm('showAll')">Show All Data</button>
+            <button onclick="showForm('findById')">Find by ID</button>
+            <button onclick="showForm('insert')">Insert Data</button>
+            <button onclick="showForm('delete')">Delete Data</button>
+            <button onclick="showForm('update')">Update Data</button>
+        </div>
+
+        <!-- Dynamic Form -->
+        <form class="dynamic-form" id="dynamicForm">
+            <label for="id">Enter ID:</label>
+            <input type="text" id="id" name="id" placeholder="Enter ID">
+            <label for="name" id="nameLabel">Enter Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter Name">
+            <button type="button" id="submitButton" onclick="performAction()">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        let currentAction = ""; // To track the current action (showAll, findById, insert, delete, update)
+
+        function showForm(action) {
+            currentAction = action;
+
+            // Show the form
+            const form = document.getElementById("dynamicForm");
+            form.style.display = "flex";
+
+            // Adjust fields based on action
+            const idField = document.getElementById("id");
+            const nameField = document.getElementById("name");
+            const nameLabel = document.getElementById("nameLabel");
+
+            if (action === "showAll") {
+                idField.style.display = "none";
+                nameField.style.display = "none";
+                nameLabel.style.display = "none";
+            } else if (action === "findById" || action === "delete") {
+                idField.style.display = "block";
+                nameField.style.display = "none";
+                nameLabel.style.display = "none";
+            } else if (action === "insert" || action === "update") {
+                idField.style.display = action === "update" ? "block" : "none";
+                nameField.style.display = "block";
+                nameLabel.style.display = "block";
+            }
+        }
+
+        function performAction() {
+            const id = document.getElementById("id").value;
+            const name = document.getElementById("name").value;
+
+            if (currentAction === "showAll") {
+                fetch('/showAll') // Replace with your backend endpoint
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        alert("Data fetched successfully. Check console for details.");
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else if (currentAction === "findById") {
+                if (!id) {
+                    alert("Please enter an ID.");
+                    return;
+                }
+                fetch(`/findById?id=${id}`) // Replace with your backend endpoint
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        alert(`Data for ID ${id}: ${JSON.stringify(data)}`);
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else if (currentAction === "insert") {
+                if (!name) {
+                    alert("Please enter a name.");
+                    return;
+                }
+                fetch('/insertData', { // Replace with your backend endpoint
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                })
+                    .then(response => response.text())
+                    .then(message => alert(message))
+                    .catch(error => console.error('Error:', error));
+            } else if (currentAction === "delete") {
+                if (!id) {
+                    alert("Please enter an ID.");
+                    return;
+                }
+                fetch(`/deleteData?id=${id}`, { method: 'DELETE' }) // Replace with your backend endpoint
+                    .then(response => response.text())
+                    .then(message => alert(message))
+                    .catch(error => console.error('Error:', error));
+            } else if (currentAction === "update") {
+                if (!id || !name) {
+                    alert("Please enter both ID and name.");
+                    return;
+                }
+                fetch('/updateData', { // Replace with your backend endpoint
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name })
+                })
+                    .then(response => response.text())
+                    .then(message => alert(message))
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+</body>
+</html>
